@@ -14,3 +14,8 @@ function togglePause(){
 		document.getElementById('pausebtn').innerHTML = "Resume";
 	}
 }
+
+function changeGrid(delta){
+	grid+=delta;
+	init();
+}

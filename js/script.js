@@ -10,21 +10,16 @@ var startup = true;
 function init(){
 	console.log("Start");
 	var svg = d3.selectAll("svg");
-	w = window.innerWidth*0.75;
-	h = window.innerHeight*0.75;
+	w = window.innerWidth*0.9;
+	h = window.innerHeight*0.9;
 	svg.attr("width",w);
 	svg.attr("height",h);
 	cellDim = Math.min(w/grid, h/grid);
+	svg.selectAll("rect").remove();
+	cells = [];
 	for(var i = 0; i<grid; i++){
 		for(var j = 0; j<grid; j++){	
-			var r = null;
-			if (startup){
-				r = svg.append("rect");
-				cells.push(r);
-			}
-			else{
-				r = cells[j+i*grid];
-			}
+			var r = svg.append("rect");			
 			r.attr("width", cellDim*0.9);
 			r.attr("height", cellDim*0.9);
 			r.attr("fill", "black");
@@ -32,10 +27,24 @@ function init(){
 			r.attr("y", i*cellDim);
 			r.attr("id", j+i*grid);
 			r.on("mouseover", toggleState);
+			cells.push(r);
 		}
 	}
-	getState();
-	updateState();
+	if(startup){
+		getState();
+		updateState();
+	}
+	else{
+		state = [];
+		while(grid*grid>state.length)
+			state.push(0);
+		while(grid*grid<state.length)
+			state.pop();
+		console.log(state);
+		updateStateStr();
+		updateState();
+	}
+	startup = false;
 }
 
 function toggleState(){
@@ -51,6 +60,8 @@ function toggleState(){
 
 function updateState(){
 	getState();
+	console.log(state);
+	console.log(cells.length);
 	for(var i = 0; i<state.length; i++){
 		if(Number(state[i])==1)
 			cells[i].style("opacity", 1);
@@ -61,7 +72,8 @@ function updateState(){
 
 function getState(){
 	var stateStr = document.getElementById('state').innerHTML;
-	state = stateStr.substring(3,stateStr.length-1).split(',');
+	state = stateStr.substring(1,stateStr.length-1).split(',');
+	state.pop();
 	//console.log(state);
 }
 
