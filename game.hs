@@ -1,16 +1,18 @@
+{-# LANGUAGE OverloadedStrings #-}
 module Main where
 
 
 import Control.Monad    (msum)
 import Happstack.Server
-    ( Response, ServerPart, Method(POST)
-    , BodyPolicy(..), decodeBody, defaultBodyPolicy
-    , dir, look, nullConf, ok, simpleHTTP
-    , toResponse, methodM
-    )
 import Happstack.Server.Types (Response, addHeader)
 import Data.List        (delete)
 import qualified Data.Text.Lazy as L
+import           Text.Blaze                         ((!))
+import qualified Text.Blaze.Html5 as H
+import qualified Text.Blaze.Html5.Attributes as A
+import Text.Blaze.Svg11 ((!))
+import qualified Text.Blaze.Svg11 as S
+import qualified Text.Blaze.Svg11.Attributes as SA
 
 keys :: Int -> Int -> [Int]
 keys l x = delete x $ row l (x+l) ++ row l x ++ row l (x-l) 
@@ -38,7 +40,10 @@ myPolicy = (defaultBodyPolicy "/tmp/" 0 1000 1000)
 handlers :: ServerPart Response
 handlers =
     do decodeBody myPolicy
-       msum [ processRequest ]
+       msum [ dir "game" $ processRequest 
+            , dir "js" $ serveDirectory DisableBrowsing [] "./js/"
+            , nullDir >> page
+            ]
 
 processRequest :: ServerPart Response
 processRequest =
@@ -48,3 +53,27 @@ processRequest =
        let newState = step state
        let r = toResponse (show newState)
        ok $ addHeader "Access-Control-Allow-Origin" "*" r
+
+page :: ServerPart Response
+page = ok $ toResponse $
+            H.html $ do
+                H.script ! A.type_ "text/javascript" ! A.src "js/jquery-3.1.1.min.js" $ ""
+                H.script ! A.type_ "text/javascript" ! A.src "js/d3.min.js" $ ""
+                H.script ! A.type_ "text/javascript" ! A.src "js/buttons.js" $ ""
+                H.script ! A.type_ "text/javascript" ! A.src "js/script.js" $ ""
+                H.head $ do
+                    H.title $ "Game of Life"
+                H.body $ do
+                    svgDoc
+                    H.p ! A.id "state" ! A.hidden "true" $ "[5,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]"
+                    H.br
+                    H.button ! A.onclick "fetch()" $ "Step Forward"
+                    H.button ! A.onclick "changeSpeed(50)" $ "Speed-"
+                    H.button ! A.onclick "changeSpeed(-50)" $ "Speed+"
+                    H.button ! A.id "pausebtn" ! A.onclick "togglePause()" $ "Pause"
+                    H.br
+                    H.button ! A.onclick "changeGrid(-1)" $ "grid-"
+                    H.button ! A.onclick "changeGrid(1)" $ "grid+"
+
+svgDoc = S.svg ! SA.version "1.1" ! SA.width "150" ! SA.height "100" $ ""
+                   

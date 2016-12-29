@@ -7,6 +7,25 @@ var state = [];
 var speed = 250;
 var pause = false;
 var startup = true;
+window.onload = init;
+setTimeout(fetch, speed);
+
+function fetch() {
+	//console.log("request sent");
+	$.ajax({
+	  type: "POST",
+	  data: "state="+document.getElementById('state').innerHTML,
+	  url: "http://127.0.0.1:8000/game",
+	  success: function(data){
+	  	document.getElementById('state').innerHTML = data;
+	  	updateState();
+	  	if(!pause)
+		  	setTimeout(fetch, speed);
+	  }
+	});
+}
+
+
 function init(){
 	console.log("Start");
 	var svg = d3.selectAll("svg");
