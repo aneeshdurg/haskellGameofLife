@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<!--script src="{{  url_for('static', filename='jquery-3.1.1.min.js')  }}"></script-->
+<script src="js/jquery-3.1.1.min.js"></script>
+<script src="js/d3.min.js"></script>
+<script src="js/script.js"></script>
+<script src="js/buttons.js"></script>
+<script>
+	function fetch() {
+		//console.log("request sent");
+		$.ajax({
+		  type: "POST",
+		  data: "state="+document.getElementById('state').innerHTML,
+		  url: "http://127.0.0.1:8000/",
+		  success: function(data){
+		  	document.getElementById('state').innerHTML = data;
+		  	updateState();
+		  	if(!pause)
+			  	setTimeout(fetch, speed);
+		  }
+		});
+	}
+	window.onload = init;
+	setTimeout(fetch, speed);
+</script>
+<head>
+	<title>Client</title>
+</head>
+<body>
+<svg id='display'></svg>
+<p id='state' hidden>[5,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]</p>
+<br>
+<button onclick="fetch()">Step Forward</button>
+<button onclick="changeSpeed(50)">Speed-</button>
+<button onclick="changeSpeed(-50)">Speed+</button>
+<button id="pausebtn" onclick="togglePause()">Pause</button>
+</body>
+</html>
