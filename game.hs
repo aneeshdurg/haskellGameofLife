@@ -37,7 +37,7 @@ main = do
     simpleHTTP nullConf $ handlers
 
 myPolicy :: BodyPolicy
-myPolicy = (defaultBodyPolicy "/tmp/" 0 1000 1000)
+myPolicy = (defaultBodyPolicy "/tmp/" 0 10000 10000)
 
 handlers :: ServerPart Response
 handlers =
