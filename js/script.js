@@ -79,8 +79,8 @@ function toggleState(){
 
 function updateState(){
 	getState();
-	console.log(state);
-	console.log(cells.length);
+	//console.log(state);
+	//console.log(cells.length);
 	for(var i = 0; i<state.length; i++){
 		if(Number(state[i])==1)
 			cells[i].style("opacity", 1);

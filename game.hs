@@ -2,12 +2,13 @@
 module Main where
 
 
-import Control.Monad    (msum)
+import Control.Monad (msum)
+import Data.List (delete)
+import qualified Data.Array as AR
 import Happstack.Server
 import Happstack.Server.Types (Response, addHeader)
-import Data.List        (delete)
 import qualified Data.Text.Lazy as L
-import           Text.Blaze                         ((!))
+import Text.Blaze ((!))
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
 import Text.Blaze.Svg11 ((!))
@@ -23,16 +24,17 @@ keys l x = delete x $ row l (x+l) ++ row l x ++ row l (x-l)
           where thisRow = [x`mod`l-1, x`mod`l, x`mod`l+1]
                 preserveRow = (\y->y`mod`l+l*(x `div` l))
 
-action :: Int -> Int -> [Int] -> Int
-action l x xs = if (s==3)||(s==2&& xs!!x==1) then 1 else 0   
-  where s=sum $ map (xs!!) $ keys l x
+action :: Int -> Int -> AR.Array Int Int -> Int
+action l x xs = if (s==3)||(s==2&& xs AR.! x==1) then 1 else 0   
+  where s=sum $ map (xs AR.!) $ keys l x
 
-step ::[Int] -> [Int]
-step xs = [l]++map (\x->action l x $ tail xs) [0..l*l-1]
-  where l = head xs
+step :: Int -> AR.Array Int Int -> [Int]
+step l xs = [l]++map (\x->action l x xs) [0..l*l-1]
 
 main :: IO ()
-main = simpleHTTP nullConf $ handlers
+main = do
+    putStrLn "Now running on http://127.0.0.1:8000/"
+    simpleHTTP nullConf $ handlers
 
 myPolicy :: BodyPolicy
 myPolicy = (defaultBodyPolicy "/tmp/" 0 1000 1000)
@@ -50,7 +52,10 @@ processRequest =
     do methodM POST
        stateStr <- look "state"
        let state = read stateStr :: [Int]
-       let newState = step state
+       let l = head state
+       let maxI = l*l-1
+       let stateArr = AR.array (0, maxI) $ zip [0..] $ tail state
+       let newState = step l stateArr
        let r = toResponse (show newState)
        ok $ addHeader "Access-Control-Allow-Origin" "*" r
 
